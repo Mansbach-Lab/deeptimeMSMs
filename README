@@ -1,0 +1,5 @@
+Work on a series of Markov State Model tutorials modeled on the PyEmma ones but primarily using the deeptime software instead.
+
+Still requires pyemma for some visualization, which hopefully I will rectify at some point.
+
+To run these tutorials I recommend a conda environment with PyEmma, deeptime, numpy, mdtraj, mdshare, and matplotlib installed, as well as jupyterlab or jupyter notebook.
