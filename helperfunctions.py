@@ -7,6 +7,48 @@ Created on Tue Dec 17 15:10:03 2024
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy.linalg import lstsq
+import matplotlib
+from scipy.stats import gaussian_kde
+
+def visFES2D(pcs,ax,cmap=matplotlib.cm.plasma,levels=10,thresh=1e-6,nbins=300,kbT=1):
+    """
+    visualizes a two-dimensional free energy surface, smoothed with a Gaussian kernel
+    density estimation
+
+    ----------
+    Parameters
+    ----------
+    pcs : 2 x N numpy array
+        the two variables in which to construct the FES
+    ax : matplotlib axis object
+        which axis to put the thing on
+    cmap : matplotlib colormap, default = plasma
+        consider carefully what colormap to use
+        the default is a perceptually uniform colormap
+    levels : int, default 10
+        the number of contour levels to plot on the contour plot
+    thresh : float, default 1e-6
+        values of smaller than this threshold will be set to zero
+    nbins : int, default = 300
+        how finely to divide up the mesh for the final contour plot
+    kbT : float, default = 1.0
+        unit of energy, temperature-dependent. have a care -- this is reduced unit dependent
+
+    -------
+    Returns
+    -------
+    contour : matplotlib contourf object
+    """
+    x = pcs[:,0]
+    y = pcs[:,1]
+    xi,yi = np.mgrid[x.min():x.max():nbins*1j,y.min():y.max():nbins*1j]
+    k = gaussian_kde(pcs[:,0:2].T)
+    zi = k(np.vstack([xi.flatten(),yi.flatten()]))
+    zi[np.abs(zi)<=thresh] = 0.0
+    F = -kbT*np.log(zi)
+    contour = ax.contourf(xi,yi,F.reshape(xi.shape),levels=levels,cmap=cmap)
+    #ax.colorbar()
+    return contour
 
 def LMethodGapID(values,plot=False):
     """
