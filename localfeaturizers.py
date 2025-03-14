@@ -8,7 +8,9 @@ Created on Tue Dec 17 15:05:00 2024
 import mdtraj as mdt, numpy as np
 import itertools
 
-def local_dihedral_featurizer(trajlist,periodic):
+
+
+def local_dihedral_featurizer(trajlist,periodic,sincos=True,psiphionly=False):
     """
     Computes all possible dihedral angles in a list of trajectories
     Returns the sin/cos functions of those angles
@@ -19,6 +21,10 @@ def local_dihedral_featurizer(trajlist,periodic):
     periodic : bool 
         determine whether unit cell wrapping needs to be applied
         see mdtraj.compute_phi for details
+    sincos : bool, default = True
+        whether to return the sin/cos of all dihedrals or the raw angles
+    psiphionly : bool, default = False
+        whether to return all possible dihedrals or only the psi/phi ones
     -------
     Returns
     -------
@@ -28,19 +34,31 @@ def local_dihedral_featurizer(trajlist,periodic):
     for traj in trajlist:
         phis = mdt.compute_phi(traj,periodic=periodic)[1]
         psis = mdt.compute_psi(traj,periodic=periodic)[1]
-        chi1s = mdt.compute_chi1(traj,periodic=periodic)[1]
-        chi2s = mdt.compute_chi2(traj,periodic=periodic)[1]
-        chi3s = mdt.compute_chi3(traj,periodic=periodic)[1]
-        chi4s = mdt.compute_chi4(traj,periodic=periodic)[1]
-        omegas = mdt.compute_omega(traj,periodic=periodic)[1]
-        cphis = np.hstack([np.sin(phis),np.cos(phis)])
-        cpsis = np.hstack([np.sin(psis),np.cos(psis)])
-        cchi1s = np.hstack([np.sin(chi1s),np.cos(chi1s)])
-        cchi2s = np.hstack([np.sin(chi2s),np.cos(chi2s)])
-        cchi3s = np.hstack([np.sin(chi3s),np.cos(chi3s)])
-        cchi4s = np.hstack([np.sin(chi4s),np.cos(chi4s)])
-        comegas = np.hstack([np.sin(omegas),np.cos(omegas)])
-        dihs = np.hstack([cphis,cpsis,cchi1s,cchi2s,cchi3s,cchi4s,comegas])
+        if sincos:
+            cphis = np.hstack([np.sin(phis),np.cos(phis)])
+            cpsis = np.hstack([np.sin(psis),np.cos(psis)])
+        if not psiphionly:
+            chi1s = mdt.compute_chi1(traj,periodic=periodic)[1]
+            chi2s = mdt.compute_chi2(traj,periodic=periodic)[1]
+            chi3s = mdt.compute_chi3(traj,periodic=periodic)[1]
+            chi4s = mdt.compute_chi4(traj,periodic=periodic)[1]
+            omegas = mdt.compute_omega(traj,periodic=periodic)[1]
+            if sincos:
+                cchi1s = np.hstack([np.sin(chi1s),np.cos(chi1s)])
+                cchi2s = np.hstack([np.sin(chi2s),np.cos(chi2s)])
+                cchi3s = np.hstack([np.sin(chi3s),np.cos(chi3s)])
+                cchi4s = np.hstack([np.sin(chi4s),np.cos(chi4s)])
+                comegas = np.hstack([np.sin(omegas),np.cos(omegas)])
+        if psiphionly:
+            if sincos:
+                dihs = np.hstack([cphis,cpsis])
+            else:
+                dihs = np.hstack([phis,psis])
+        else:
+            if sincos:
+                dihs = np.hstack([cphis,cpsis,cchi1s,cchi2s,cchi3s,cchi4s,comegas])
+            else:
+                dihs = np.hstack([phis,psis,chi1s,chi2s,chi3s,chi4s,omegas])
         dihslist.append(dihs)
     return dihslist
 
